@@ -23,3 +23,8 @@ go.work.sum
 
 # env file
 .env
+
+# tokens
+config.json
+cookies.txt
+.idea/
