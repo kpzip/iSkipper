@@ -6,11 +6,11 @@ import (
 )
 
 type Config struct {
-	Username string
-	Password string
+	Token  string `json:"token"`
+	UserId string `json:"user_id"`
 }
 
-func get_config() (*Config, error) {
+func getConfig() (*Config, error) {
 	data, err := os.ReadFile("./config.json")
 	if err != nil {
 		return nil, err
