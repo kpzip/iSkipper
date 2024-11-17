@@ -78,8 +78,8 @@ func (client *IClickerClient) GetCourses() ([]Course, error) {
 	return coursesGetResponse.Enrollments, nil
 }
 
-func (client *IClickerClient) JoinCourseAttendance(courseId string) (*string, error) {
-	bodyString := fmt.Sprintf("{\"id\":\"%s\",\"geo\":{\"accuracy\":\"%s\",\"lat\":\"%s\",\"lon\":\"%s\"}}", courseId, string(rune(0)), string(rune(0)), string(rune(0)))
+func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude string, longitude string, accuracy string) (*string, error) {
+	bodyString := fmt.Sprintf("{\"id\":\"%s\",\"geo\":{\"accuracy\":\"%s\",\"lat\":\"%s\",\"lon\":\"%s\"}}", courseId, accuracy, latitude, longitude)
 
 	request, err := client.newRequest(iClickerTrogonApiUrl, "/v2/course/attendance/join/", "POST", &bodyString)
 	if err != nil {

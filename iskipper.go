@@ -19,7 +19,7 @@ func main() {
 	}
 	log.Printf("%+v\n", courses)
 	course := courses[0]
-	attendance, err := iClickerClient.JoinCourseAttendance(course.CourseId)
+	attendance, err := iClickerClient.JoinCourseAttendance(course.CourseId, "", "", "")
 	if err != nil {
 		return
 	}
