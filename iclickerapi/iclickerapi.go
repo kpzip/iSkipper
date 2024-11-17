@@ -2,7 +2,6 @@ package iclickerapi
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -50,26 +49,31 @@ func (client *IClickerClient) newRequest(url string, path string, method string,
 	return request, nil
 }
 
-type CoursesGetResponse struct {
-	Enrollments []Course `json:"enrollments"`
-}
-
 func (client *IClickerClient) GetCourses() ([]Course, error) {
+
 	request, err := client.newRequest(iClickerApiUrl, "/v1/users/"+client.UserId+"/views/student-courses", "GET", nil)
 	if err != nil {
 		return nil, err
 	}
+
 	response, err := client.Client.Do(request)
 	if err != nil {
 		return nil, err
 	}
 	defer response.Body.Close()
+
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
+
 	}
 	stringBody := string(body)
 	// log.Printf(stringBody)
+
+	type CoursesGetResponse struct {
+		Enrollments []Course `json:"enrollments"`
+	}
+
 	var coursesGetResponse CoursesGetResponse
 	err = json.Unmarshal([]byte(stringBody), &coursesGetResponse)
 	if err != nil {
@@ -79,9 +83,31 @@ func (client *IClickerClient) GetCourses() ([]Course, error) {
 }
 
 func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude string, longitude string, accuracy string) (*string, error) {
-	bodyString := fmt.Sprintf("{\"id\":\"%s\",\"geo\":{\"accuracy\":\"%s\",\"lat\":\"%s\",\"lon\":\"%s\"}}", courseId, accuracy, latitude, longitude)
 
-	request, err := client.newRequest(iClickerTrogonApiUrl, "/v2/course/attendance/join/", "POST", &bodyString)
+	type GeoData struct {
+		Accuracy  string `json:"accuracy"`
+		Latitude  string `json:"lat"`
+		Longitude string `json:"lon"`
+	}
+
+	type JoinBodyData struct {
+		Id  string  `json:"id"`
+		Geo GeoData `json:"geo"`
+	}
+
+	requestBodyData := JoinBodyData{
+		Id: courseId,
+		Geo: GeoData{
+			Latitude:  latitude,
+			Longitude: longitude,
+			Accuracy:  accuracy,
+		},
+	}
+
+	requestBody, _ := json.Marshal(requestBodyData)
+	requestBodyString := string(requestBody)
+
+	request, err := client.newRequest(iClickerTrogonApiUrl, "/v2/course/attendance/join/", "POST", &requestBodyString)
 	if err != nil {
 		return nil, err
 	}
@@ -90,12 +116,12 @@ func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude str
 		return nil, err
 	}
 	defer response.Body.Close()
-	body, err := io.ReadAll(response.Body)
+	responseBodyData, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}
-	stringBody := string(body)
-	// log.Printf(stringBody)
+	responseBodyString := string(responseBodyData)
+	// log.Printf(responseBodyString)
 
-	return &stringBody, nil
+	return &responseBodyString, nil
 }
