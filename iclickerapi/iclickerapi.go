@@ -3,7 +3,7 @@ package iclickerapi
 import (
 	"encoding/json"
 	"io"
-  "log"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -47,7 +47,7 @@ func (client *IClickerClient) newRequest(url string, path string, method string,
 	request.Header.Add("Content-Type", "application/json")
 	request.Header.Add("Reef-Auth-Type", "oauth")
 	request.Header.Add("Authorization", "Bearer "+client.Token)
-  request.Header.Add("Client-Tag", "ICLICKER/STUDENT-WEB/2024-11-18T22:28:38.159Z/Win/NT 10.0/Chrome/Web-Browser/131.0.0.0")
+	request.Header.Add("Client-Tag", "ICLICKER/STUDENT-WEB/2024-11-18T22:28:38.159Z/Win/NT 10.0/Chrome/Web-Browser/131.0.0.0")
 	return request, nil
 }
 
@@ -108,9 +108,9 @@ func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude flo
 
 	requestBody, _ := json.Marshal(requestBodyData)
 	requestBodyString := string(requestBody)
-  log.Printf(requestBodyString)
+	log.Printf(requestBodyString)
 
-	request, err := client.newRequest(iClickerTrogonApiUrl, "/v2/course/attendance/join/" + courseId, "POST", &requestBodyString)
+	request, err := client.newRequest(iClickerTrogonApiUrl, "/v2/course/attendance/join/"+courseId, "POST", &requestBodyString)
 	if err != nil {
 		return nil, err
 	}
