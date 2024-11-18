@@ -26,4 +26,5 @@ go.work.sum
 
 # tokens
 config.json
+config.json.bak
 .idea/
