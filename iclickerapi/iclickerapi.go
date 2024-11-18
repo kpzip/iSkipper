@@ -3,6 +3,7 @@ package iclickerapi
 import (
 	"encoding/json"
 	"io"
+  "log"
 	"net/http"
 	"strings"
 )
@@ -46,6 +47,7 @@ func (client *IClickerClient) newRequest(url string, path string, method string,
 	request.Header.Add("Content-Type", "application/json")
 	request.Header.Add("Reef-Auth-Type", "oauth")
 	request.Header.Add("Authorization", "Bearer "+client.Token)
+  request.Header.Add("Client-Tag", "ICLICKER/STUDENT-WEB/2024-11-18T22:28:38.159Z/Win/NT 10.0/Chrome/Web-Browser/131.0.0.0")
 	return request, nil
 }
 
@@ -82,12 +84,12 @@ func (client *IClickerClient) GetCourses() ([]Course, error) {
 	return coursesGetResponse.Enrollments, nil
 }
 
-func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude string, longitude string, accuracy string) (*string, error) {
+func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude float64, longitude float64, accuracy float64) (*string, error) {
 
 	type GeoData struct {
-		Accuracy  string `json:"accuracy"`
-		Latitude  string `json:"lat"`
-		Longitude string `json:"lon"`
+		Accuracy  float64 `json:"accuracy"`
+		Latitude  float64 `json:"lat"`
+		Longitude float64 `json:"lon"`
 	}
 
 	type JoinBodyData struct {
@@ -106,8 +108,9 @@ func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude str
 
 	requestBody, _ := json.Marshal(requestBodyData)
 	requestBodyString := string(requestBody)
+  log.Printf(requestBodyString)
 
-	request, err := client.newRequest(iClickerTrogonApiUrl, "/v2/course/attendance/join/", "POST", &requestBodyString)
+	request, err := client.newRequest(iClickerTrogonApiUrl, "/v2/course/attendance/join/" + courseId, "POST", &requestBodyString)
 	if err != nil {
 		return nil, err
 	}
