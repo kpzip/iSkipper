@@ -5,7 +5,6 @@ import (
 	"iskipper/iclickerapi"
 	"log"
 	"os"
-	"slices"
 	"strings"
 )
 
@@ -21,24 +20,30 @@ func main() {
 	displayClasses := false
 	var joinCourseId *string = nil
 	retry := false
+	var token *string = nil
 
 	for i, arg := range argsWithoutProg {
 		if strings.HasPrefix(arg, "-") {
 			if arg == "--courses" {
 				displayClasses = true
 			} else if arg == "--join" {
-				joinCourseId = &argsWithProg[i+1]
+				joinCourseId = &argsWithoutProg[i+1]
 			} else if arg == "--retry" {
 				retry = true
+			} else if arg == "--token" {
+				token = &argsWithoutProg[i+1]
 			} else {
 				if strings.Contains(arg, "c") {
 					displayClasses = true
 				}
 				if strings.Contains(arg, "j") {
-					joinCourseId = &argsWithProg[i+1]
+					joinCourseId = &argsWithoutProg[i+1]
 				}
 				if strings.Contains(arg, "r") {
 					retry = true
+				}
+				if strings.Contains(arg, "t") {
+					token = &argsWithoutProg[i+1]
 				}
 			}
 		}
@@ -50,9 +55,12 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	if token == nil {
+		token = &cfg.Token
+	}
 
 	// setup client
-	iClickerClient := iclickerapi.Client(cfg.Token, cfg.UserId)
+	iClickerClient := iclickerapi.Client(*token, cfg.UserId)
 
 	// Get the list of enrolled courses
 	courses, err := iClickerClient.GetCourses()
@@ -90,20 +98,24 @@ func main() {
 		}
 	}
 	if joinCourseId != nil {
-		var names []string
+
+		contains := false
 		for _, course := range courses {
-			names = append(names, course.Name)
+			if *joinCourseId == course.CourseId {
+				contains = true
+				break
+			}
 		}
-		if !slices.Contains(names, *joinCourseId) {
-			_, _ = fmt.Fprintf(os.Stderr, "Error: course %s not found\n", *joinCourseId)
-			return
+		if !contains {
+			fmt.Printf("Error: course %s not found.\n", *joinCourseId)
 		}
+
 		for {
 			attendance, err := iClickerClient.JoinCourseAttendanceWithoutGps(*joinCourseId)
 			if err != nil {
 				log.Fatalln(err)
 			}
-			if attendance.Error != nil && attendance.Error.Code == 503 {
+			if attendance.Error != nil && attendance.Error.Code == 409 {
 				if retry {
 					fmt.Printf("Failed to join course because course has not started yet. Retrying...\n")
 					continue
