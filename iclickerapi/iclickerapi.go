@@ -2,6 +2,7 @@ package iclickerapi
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -18,8 +19,8 @@ type IClickerClient struct {
 }
 
 type ApiError struct {
-  Code int64 `json:"code"`
-  Message string `json:"desc"`
+	Code    int64  `json:"code"`
+	Message string `json:"desc"`
 }
 
 func Client(token string, userId string) *IClickerClient {
@@ -90,11 +91,15 @@ func (client *IClickerClient) GetCourses() ([]Course, error) {
 }
 
 type AttendanceResponse struct {
-  AttendanceId string `json:"attendanceId"`
-  Result string `json:"result"`
-  Method string `json:"method"`
-  ProfessorLocation GeoData `json:"profLocation"`
-  Error *ApiError `json:"error"`
+	AttendanceId      string    `json:"attendanceId"`
+	Result            string    `json:"result"`
+	Method            string    `json:"method"`
+	ProfessorLocation *GeoData  `json:"profLocation"`
+	Error             *ApiError `json:"error"`
+}
+
+func (response *AttendanceResponse) String() string {
+	return fmt.Sprintf("Attendance id: %s, Result: %s, Method: %s, Location: %+v, Error: %+v", response.AttendanceId, response.Result, response.Method, response.ProfessorLocation, response.Error)
 }
 
 type GeoData struct {
@@ -103,7 +108,29 @@ type GeoData struct {
 	Longitude float64 `json:"lon"`
 }
 
-func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude float64, longitude float64, accuracy float64) (*AttendanceResponse, error) {
+const defaultAccuracy = 900.0
+
+func FromLatLon(latitude float64, longitude float64) GeoData {
+	return GeoData{
+		Latitude:  latitude,
+		Longitude: longitude,
+		Accuracy:  defaultAccuracy,
+	}
+}
+
+func (client *IClickerClient) JoinCourseAttendanceWithoutGps(courseId string) (*AttendanceResponse, error) {
+	// TODO use current location instead
+	resp1, err := client.JoinCourseAttendance(courseId, FromLatLon(0, 0))
+	if err != nil {
+		return nil, err
+	}
+	if resp1.Result == "ABSENT" {
+		return client.JoinCourseAttendance(courseId, *resp1.ProfessorLocation)
+	}
+	return resp1, nil
+}
+
+func (client *IClickerClient) JoinCourseAttendance(courseId string, location GeoData) (*AttendanceResponse, error) {
 
 	type JoinBodyData struct {
 		Id  string  `json:"id"`
@@ -111,12 +138,8 @@ func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude flo
 	}
 
 	requestBodyData := JoinBodyData{
-		Id: courseId,
-		Geo: GeoData{
-			Latitude:  latitude,
-			Longitude: longitude,
-			Accuracy:  accuracy,
-		},
+		Id:  courseId,
+		Geo: location,
 	}
 
 	requestBody, _ := json.Marshal(requestBodyData)
@@ -138,9 +161,9 @@ func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude flo
 	}
 	responseBodyString := string(responseBodyData)
 	// log.Printf(responseBodyString)
-  var deserializedResponse AttendanceResponse
+	var deserializedResponse AttendanceResponse
 
-  err = json.Unmarshal([]byte(responseBodyString), &deserializedResponse)
+	err = json.Unmarshal([]byte(responseBodyString), &deserializedResponse)
 
 	return &deserializedResponse, nil
 }
