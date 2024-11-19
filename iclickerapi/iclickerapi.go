@@ -17,6 +17,11 @@ type IClickerClient struct {
 	UserId string
 }
 
+type ApiError struct {
+  Code int64 `json:"code"`
+  Message string `json:"desc"`
+}
+
 func Client(token string, userId string) *IClickerClient {
 	return &IClickerClient{
 		Client: &http.Client{},
@@ -84,13 +89,21 @@ func (client *IClickerClient) GetCourses() ([]Course, error) {
 	return coursesGetResponse.Enrollments, nil
 }
 
-func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude float64, longitude float64, accuracy float64) (*string, error) {
+type AttendanceResponse struct {
+  AttendanceId string `json:"attendanceId"`
+  Result string `json:"result"`
+  Method string `json:"method"`
+  ProfessorLocation GeoData `json:"profLocation"`
+  Error *ApiError `json:"error"`
+}
 
-	type GeoData struct {
-		Accuracy  float64 `json:"accuracy"`
-		Latitude  float64 `json:"lat"`
-		Longitude float64 `json:"lon"`
-	}
+type GeoData struct {
+	Accuracy  float64 `json:"accuracy"`
+	Latitude  float64 `json:"lat"`
+	Longitude float64 `json:"lon"`
+}
+
+func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude float64, longitude float64, accuracy float64) (*AttendanceResponse, error) {
 
 	type JoinBodyData struct {
 		Id  string  `json:"id"`
@@ -125,6 +138,9 @@ func (client *IClickerClient) JoinCourseAttendance(courseId string, latitude flo
 	}
 	responseBodyString := string(responseBodyData)
 	// log.Printf(responseBodyString)
+  var deserializedResponse AttendanceResponse
 
-	return &responseBodyString, nil
+  err = json.Unmarshal([]byte(responseBodyString), &deserializedResponse)
+
+	return &deserializedResponse, nil
 }

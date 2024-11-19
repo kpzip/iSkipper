@@ -23,6 +23,6 @@ func main() {
 	if err != nil {
 		return
 	}
-	log.Printf(*attendance)
+	log.Printf("%+v\n", *attendance)
 
 }
