@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -144,7 +143,7 @@ func (client *IClickerClient) JoinCourseAttendance(courseId string, location Geo
 
 	requestBody, _ := json.Marshal(requestBodyData)
 	requestBodyString := string(requestBody)
-	log.Printf(requestBodyString)
+	// log.Printf(requestBodyString)
 
 	request, err := client.newRequest(iClickerTrogonApiUrl, "/v2/course/attendance/join/"+courseId, "POST", &requestBodyString)
 	if err != nil {
