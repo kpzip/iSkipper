@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+  "log"
 )
 
 const iClickerApiUrl = "https://api.iclicker.com"
@@ -159,7 +160,7 @@ func (client *IClickerClient) JoinCourseAttendance(courseId string, location Geo
 		return nil, err
 	}
 	responseBodyString := string(responseBodyData)
-	// log.Printf(responseBodyString)
+	log.Printf(responseBodyString)
 	var deserializedResponse AttendanceResponse
 
 	err = json.Unmarshal([]byte(responseBodyString), &deserializedResponse)

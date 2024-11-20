@@ -10,6 +10,8 @@ import (
 
 const logFileName = "log.txt"
 
+const version = "0.1.0"
+
 func main() {
 
 	argsWithProg := os.Args
@@ -21,6 +23,7 @@ func main() {
 	var joinCourseId *string = nil
 	retry := false
 	var token *string = nil
+  help := false
 
 	for i, arg := range argsWithoutProg {
 		if strings.HasPrefix(arg, "-") {
@@ -32,7 +35,9 @@ func main() {
 				retry = true
 			} else if arg == "--token" {
 				token = &argsWithoutProg[i+1]
-			} else {
+			} else if arg == "--help" || arg == "-h" {
+        help = true
+      } else {
 				if strings.Contains(arg, "c") {
 					displayClasses = true
 				}
@@ -44,11 +49,22 @@ func main() {
 				}
 				if strings.Contains(arg, "t") {
 					token = &argsWithoutProg[i+1]
-				}
+				} 
 			}
 		}
 		// ignore if this is part of another argument
 	}
+
+  if help {
+    fmt.Printf("iSkipper v%s help Menu:\n")
+    fmt.Printf("| Argument  | Shorthand | Description\n")
+    fmt.Printf("| --courses | -c        | Display the courses currently enrolled in by the user\n")
+    fmt.Printf("| --join    | -j        | Join Attandence for a specific course id\n")
+    fmt.Printf("| --retry   | -r        | Constantly retry joinging attandence\n")
+    fmt.Printf("| --token   | -t        | Use the specified bearer token for authentication\n")
+    fmt.Printf("| --help    | -h        | Display this menu\n")
+    return
+  }
 
 	// get config
 	cfg, err := getConfig()
