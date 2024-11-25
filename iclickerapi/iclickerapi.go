@@ -94,7 +94,7 @@ type AttendanceResponse struct {
 	AttendanceId      string    `json:"attendanceId"`
 	Result            string    `json:"result"`
 	Method            string    `json:"method"`
-	ProfessorLocation *GeoData  `json:"profLocation"`
+	ProfessorLocation *GeoData  `json:"instructorLocation"`
 	Error             *ApiError `json:"error"`
 }
 
@@ -120,7 +120,7 @@ func FromLatLon(latitude float64, longitude float64) GeoData {
 
 func (client *IClickerClient) JoinCourseAttendanceWithoutGps(courseId string) (*AttendanceResponse, error) {
 	// TODO use current location instead
-	resp1, err := client.JoinCourseAttendance(courseId, FromLatLon(0, 0))
+  resp1, err := client.JoinCourseAttendance(courseId, FromLatLon(0.1, 0.1))
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (client *IClickerClient) JoinCourseAttendance(courseId string, location Geo
 
 	type JoinBodyData struct {
 		Id  string  `json:"id"`
-		Geo GeoData `json:"geo"`
+    Geo GeoData `json:"geo"`
 	}
 
 	requestBodyData := JoinBodyData{
@@ -160,7 +160,7 @@ func (client *IClickerClient) JoinCourseAttendance(courseId string, location Geo
 		return nil, err
 	}
 	responseBodyString := string(responseBodyData)
-	log.Printf(responseBodyString)
+	// log.Printf(responseBodyString)
 	var deserializedResponse AttendanceResponse
 
 	err = json.Unmarshal([]byte(responseBodyString), &deserializedResponse)
